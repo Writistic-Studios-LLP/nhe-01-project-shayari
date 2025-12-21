@@ -1,5 +1,12 @@
 # NHE-01: Project Shayari
 
+> A Non-Human Entity (NHE) developed by Writistic Studios.  
+> This site documents the origin, experimentation, ethics, and governance of NHE-01.
+
+🌐 **Official Documentation Site**  
+
+# NHE-01: Project Shayari
+
 **NHE-01 (Non-Human Entity 01)**, also known as **Project Shayari**, is a studio-run artificial persona developed under **Writistic Studios / Writiverse**.
 
 This repository documents the origin, experimentation, ethical findings, and governance of NHE-01 for public understanding.
