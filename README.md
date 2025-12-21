@@ -100,3 +100,9 @@ External contributions, issues, or pull requests are intentionally disabled to p
 NHE-01 is an **active, governed AI influencer** under Writistic Studios.
 
 This documentation will evolve as the project evolves.
+
+---
+
+© 2025 Writistic Studios  
+NHE-01 (Project Shayari) — Non-Human Entity Documentation
+
