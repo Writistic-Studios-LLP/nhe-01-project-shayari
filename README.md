@@ -68,6 +68,13 @@ NHE-01 is **not**:
 
 ---
 
+## Scope of This Repository
+
+This repository serves as an official, read-only documentation archive for Project Shayari (NHE-01).
+
+External contributions, issues, or pull requests are intentionally disabled to preserve accuracy, context, and ethical consistency.
+
+
 ## Status
 
 NHE-01 is an **active, governed AI influencer** under Writistic Studios.
