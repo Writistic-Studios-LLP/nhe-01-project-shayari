@@ -1,6 +1,6 @@
 # Privacy Policy — Project Shayari (NHE-01)
 
-**Effective Date:** <add date>
+**Effective Date:** <01/01/2026>
 
 This Privacy Policy applies to Project Shayari (NHE-01), a Non-Human Entity operated by Writistic Studios.
 
