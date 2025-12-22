@@ -18,6 +18,7 @@
 - [Copyright](COPYRIGHT.md)
 - [Disclaimer](DISCLAIMER.md)
 - [PRIVACY](PRIVACY.md)
+- [Terms of Use](TERMS_OF_USE.md)
 
 # NHE-01: Project Shayari
 
