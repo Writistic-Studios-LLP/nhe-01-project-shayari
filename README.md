@@ -9,6 +9,7 @@
 
 - [Manifest](MANIFEST.md)
 - [Origin](ORIGIN.md)
+- [What does S.H.A.Y.A.R.I. mean?](SHAYARI.md)
 - [Closed Beta Experiment](EXPERIMENT.md)
 - [Ethical Learnings](ETHICS.md)
 - [Governance Rules](GOVERNANCE.md)
@@ -20,7 +21,7 @@
 - [PRIVACY](PRIVACY.md)
 - [Terms of Use](TERMS_OF_USE.md)
 
-# NHE-01: Project Shayari
+# NHE-01: Project S.H.A.Y.A.R.I.
 
 **NHE-01 (Non-Human Entity 01)**, also known as **Project Shayari**, is a studio-run artificial persona developed under **Writistic Studios / Writiverse**.
 
