@@ -17,6 +17,7 @@
 - [Ethical License](ETHICAL_LICENSE.md)
 - [Copyright](COPYRIGHT.md)
 - [Disclaimer](DISCLAIMER.md)
+- [PRIVACY](PRIVACY.md)
 
 # NHE-01: Project Shayari
 
