@@ -13,6 +13,7 @@
 - [Closed Beta Experiment](EXPERIMENT.md)
 - [Ethical Learnings](ETHICS.md)
 - [Governance Rules](GOVERNANCE.md)
+- [Social Media Governance](SOCIAL-MEDIA-GOVERNANCE.md)
 - [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
 - [Ethical License](ETHICAL_LICENSE.md)
