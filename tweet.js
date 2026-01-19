@@ -13,7 +13,7 @@ if (!X_API_KEY || !X_API_SECRET || !X_ACCESS_TOKEN || !X_ACCESS_SECRET) {
   process.exit(1);
 }
 
-const tweetText = "Hello X 🚀 This tweet was posted for FREE using GitHub Actions";
+const tweetText = "Here's to another day of me getting the opportunity to learn from you! Good Day!";
 
 function percentEncode(str) {
   return encodeURIComponent(str)
