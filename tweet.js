@@ -1,5 +1,5 @@
-import crypto from "crypto";
-import https from "https";
+const crypto = require("crypto");
+const https = require("https");
 
 const {
   X_API_KEY,
@@ -30,18 +30,14 @@ function createOAuthHeader() {
     oauth_version: "1.0"
   };
 
-  const params = {
-    ...oauth
-  };
-
   const baseString =
     "POST&" +
     percentEncode("https://api.x.com/2/tweets") +
     "&" +
     percentEncode(
-      Object.keys(params)
+      Object.keys(oauth)
         .sort()
-        .map(k => `${percentEncode(k)}=${percentEncode(params[k])}`)
+        .map(k => `${percentEncode(k)}=${percentEncode(oauth[k])}`)
         .join("&")
     );
 
