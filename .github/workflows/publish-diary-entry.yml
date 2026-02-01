@@ -21,7 +21,7 @@ jobs:
         run: |
           SHEET_ID="10XfvJKDluB0Ese2uligODdSFX6GX60EgHQfmvFM0LBM"
 
-          DIARY_TEXT=$(curl -s "https://docs.google.com/spreadsheets/d/$SHEET_ID/export?format=csv&range=A2" | tr -d '\r')
+          DIARY_TEXT=$(curl -s "https://docs.google.com/spreadsheets/d/$SHEET_ID/gviz/tq?tqx=out:csv&range=A2" | tr -d '\r')
 
           if [ -z "$DIARY_TEXT" ]; then
             echo "Diary empty. Exiting."
