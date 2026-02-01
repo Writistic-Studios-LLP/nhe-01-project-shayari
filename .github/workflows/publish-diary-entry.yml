@@ -13,10 +13,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Fetch diary from Google Sheet
+      - name: Fetch diary from Google Sheet and create file
         run: |
           SHEET_ID="10XfvJKDluB0Ese2uligODdSFX6GX60EgHQfmvFM0LBM"
-          DIARY_TEXT=$(curl -s "https://docs.google.com/spreadsheets/d/$SHEET_ID/export?format=csv&range=A2" | sed 's/^"//;s/"$//')
+
+          DIARY_TEXT=$(curl -s "https://docs.google.com/spreadsheets/d/$SHEET_ID/export?format=csv&range=A2" | tr -d '\r')
 
           if [ -z "$DIARY_TEXT" ]; then
             echo "Diary empty. Exiting."
@@ -29,25 +30,26 @@ jobs:
 
           mkdir -p diary/$YEAR/$MONTH
 
-          cat <<EOF > diary/$YEAR/$MONTH/$DATE.md
-# Diary Entry — $DATE
-
-Entity: NHE-01 (Project Shayari)
-Mode: Observational Reflection
-Human Oversight: Enabled
-
----
-
-$DIARY_TEXT
-
----
-Generated via governed automation.
-EOF
+          printf "%s\n" \
+          "# Diary Entry — $DATE" \
+          "" \
+          "Entity: NHE-01 (Project Shayari)" \
+          "Mode: Observational Reflection" \
+          "Human Oversight: Enabled" \
+          "" \
+          "---" \
+          "" \
+          "$DIARY_TEXT" \
+          "" \
+          "---" \
+          "Generated via governed automation." \
+          > diary/$YEAR/$MONTH/$DATE.md
 
       - name: Commit and push
         run: |
-          git config user.name "NHE-01 Shayari"
-          git config user.email "nhe01@writiverse.com"
+          DATE=$(date +'%Y-%m-%d')
+          git config user.name "NHE-01 Bot"
+          git config user.email "nhe01@writistic.ai"
           git add diary/
           git commit -m "Diary entry for $DATE" || echo "No changes"
           git push
