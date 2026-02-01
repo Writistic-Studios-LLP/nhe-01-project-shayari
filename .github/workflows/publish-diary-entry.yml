@@ -1,9 +1,13 @@
-name: Publish Daily Diary
+name: Publish Daily Diary (PR Based)
 
 on:
   schedule:
     - cron: '45 16 * * *' # 10:15 PM IST
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   publish:
@@ -45,11 +49,16 @@ jobs:
           "Generated via governed automation." \
           > diary/$YEAR/$MONTH/$DATE.md
 
-      - name: Commit and push
-        run: |
-          DATE=$(date +'%Y-%m-%d')
-          git config user.name "NHE-01 Bot"
-          git config user.email "nhe01@writistic.ai"
-          git add diary/
-          git commit -m "Diary entry for $DATE" || echo "No changes"
-          git push
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: diary-entry-${{ github.run_id }}
+          title: "Daily Diary Entry — ${{ github.run_started_at }}"
+          body: |
+            Automated daily diary entry generated from Google Sheets.
+
+            - Source: Cell A2
+            - Entity: NHE-01 (Project Shayari)
+            - Human Oversight: Required before merge
+          commit-message: "Add diary entry for today"
+          delete-branch: true
