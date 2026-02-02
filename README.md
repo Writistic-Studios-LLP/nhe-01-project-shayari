@@ -14,7 +14,7 @@
 - [Ethical Learnings](ETHICS.md)
 - [Governance Rules](GOVERNANCE.md)
 - [Social Media Governance](SOCIAL-MEDIA-GOVERNANCE.md)
-- [Social Media Governance](diary/)
+- [Shayari's Observations](diary/)
 - [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
 - [Ethical License](ETHICAL_LICENSE.md)
