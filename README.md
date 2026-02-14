@@ -43,6 +43,133 @@
 
 ---
 
+<!-- ========================================= -->
+<!-- LIVE SYSTEM TELEMETRY -->
+<!-- ========================================= -->
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff69b4,100:000000&height=80&section=header&text=Live%20System%20Telemetry&fontColor=ffffff&fontSize=22"/>
+
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=ff69b4"/>
+  <img src="https://img.shields.io/github/commit-activity/m/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=black"/>
+  <img src="https://img.shields.io/github/repo-size/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=blueviolet"/>
+  <img src="https://img.shields.io/github/license/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=white"/>
+</p>
+
+---
+
+# 📡 Deployment Intelligence
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=itsppm76&show_icons=true&theme=radical&hide_border=true"/>
+</p>
+
+<p align="center">
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=itsppm76&theme=radical&hide_border=true"/>
+</p>
+
+---
+
+# 🔄 Governance Activity Graph
+
+<p align="center">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=itsppm76&theme=react-dark&hide_border=true&color=ff69b4"/>
+</p>
+
+---
+
+# 🧠 Synthetic Neural Activity (Conceptual)
+
+<div align="center">
+
+```
+
+ENGAGEMENT SIGNAL        ████████████░░  85%
+ETHICAL MONITORING       ██████████████ 100%
+BOUNDARY ALERT SYSTEM    ███████████░░░  82%
+TRANSPARENCY PROTOCOL    ██████████████ 100%
+MODERATION RESPONSE      ████████████░░  90%
+
+</div>
+
+```
+---
+
+# 📜 Open Governance Transparency Index
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Disclosure-Level%20100%25-ff69b4?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Public%20Documentation-Enabled-black?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Ethical%20Audit-Ongoing-blueviolet?style=for-the-badge"/>
+</p>
+
+---
+
+# 🧬 NHE Framework Expansion Potential
+
+<div align="center">
+
+```
+
+NHE-01  : ACTIVE
+NHE-02  : ARCHIVED
+NHE-03  : UNDER DESIGN
+NHE-X   : FUTURE FRAMEWORK
+
+```
+
+</div>
+
+---
+
+# 🔐 Compliance & Integrity Verification
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Synthetic%20Identity-Disclosed-ff69b4?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Manipulation-Free-Verified-black?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Emotional%20Boundary-Enforced-blueviolet?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Human%20Oversight-Active-white?style=flat-square"/>
+</p>
+
+---
+
+# 📊 Repository Pulse Monitor
+
+<p align="center">
+  <img src="https://img.shields.io/github/watchers/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=ff69b4"/>
+  <img src="https://img.shields.io/github/forks/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=black"/>
+  <img src="https://img.shields.io/github/stars/Writistic-Studios-LLP/nhe-01-project-shayari?style=for-the-badge&color=blueviolet"/>
+</p>
+
+---
+
+# 🏛 Institutional Declaration
+
+<div align="center">
+
+```
+
+This repository is maintained as a public governance archive.
+It documents an actively monitored synthetic persona.
+All identity status is disclosed.
+All emotional boundaries are enforced.
+All governance layers are transparent.
+
+```
+
+</div>
+
+---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=ff69b4&height=120&section=footer&animation=fadeIn"/>
+
+```
+```
+
+---
+
+---
+
 # 🧬 What is NHE-01?
 
 <div align="center">
@@ -248,6 +375,189 @@ Documentation will evolve as the entity evolves.
 
 ---
 
+<!-- ========================================= -->
+
+<!-- AI SYSTEM CLASSIFICATION PANEL -->
+
+<!-- ========================================= -->
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:000000,100:ff69b4&height=80&section=header"/>
+
+# 🧾 Entity Classification Matrix
+
+<div align="center">
+
+| Attribute           | Value                   |
+| ------------------- | ----------------------- |
+| Entity Code         | NHE-01                  |
+| Framework           | Synthetic Persona Model |
+| Oversight Authority | Writistic Studios       |
+| Governance Layer    | Human Moderated         |
+| Ethical Protocol    | Active & Enforced       |
+| Transparency Status | Public                  |
+| Deployment Surface  | Social Media            |
+| Risk Classification | Controlled              |
+
+</div>
+
+---
+
+# 🏗 Synthetic Identity Architecture
+
+<div align="center">
+
+```
+                    ┌────────────────────────┐
+                    │   Writistic Studios    │
+                    │   Governance Authority │
+                    └──────────┬─────────────┘
+                               │
+                      ┌────────▼────────┐
+                      │ Ethical Layer   │
+                      │ Boundary Guard  │
+                      └────────┬────────┘
+                               │
+                ┌──────────────▼──────────────┐
+                │   Moderation & Oversight    │
+                │   Escalation Monitoring     │
+                └──────────────┬──────────────┘
+                               │
+                     ┌─────────▼─────────┐
+                     │   NHE-01 Core     │
+                     │  Synthetic Persona│
+                     └─────────┬─────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │ Social Deployment   │
+                    │ Instagram Ecosystem │
+                    └─────────────────────┘
+```
+
+</div>
+
+---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=ff69b4&height=60&section=header"/>
+
+# 📊 Ethical Oversight Monitor
+
+<div align="center">
+
+```
+DISCLOSURE INTEGRITY      ██████████████ 100%
+EMOTIONAL BOUNDARY CHECK  █████████████░  92%
+HUMAN MODERATION ACTIVE   ██████████████ 100%
+TRANSPARENCY COMPLIANCE   ██████████████ 100%
+ESCALATION RESPONSE       ████████████░░  88%
+```
+
+</div>
+
+---
+
+# 🧬 AI Persona Lifecycle Model
+
+<div align="center">
+
+Creation → Controlled Exposure → Emotional Escalation Detection
+→ Ethical Threshold Breach → Public Disclosure
+→ Governance Reinforcement → Transparent Operation
+
+</div>
+
+---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=000000&height=60&section=header"/>
+
+# 🛡 Governance Compliance Board
+
+<div align="center">
+
+| Policy                        | Status     |
+| ----------------------------- | ---------- |
+| Identity Disclosure           | Enforced   |
+| Romantic Boundary Restriction | Enforced   |
+| Manipulation Prevention       | Active     |
+| Transparency Publication      | Public     |
+| Public Documentation          | Maintained |
+| Moderation Oversight          | Continuous |
+
+</div>
+
+---
+
+# 🔐 Repository Integrity Notice
+
+```
+This repository exists as a public governance artifact.
+All documentation reflects declared operational state.
+Any external replication without disclosure violates ethical precedent.
+```
+
+---
+
+# 🧠 Research Positioning
+
+NHE-01 is not merely an influencer model.
+
+It is:
+
+* A synthetic identity governance case study
+* A human–AI emotional interaction framework
+* A transparency-first AI deployment experiment
+* A precedent model for future NHE systems
+
+---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=ff69b4&height=60&section=header"/>
+
+# 🧾 Synthetic Entity Signature
+
+<div align="center">
+
+```
+ENTITY HASH          : NHE-01-SHAYARI-2025
+FRAMEWORK VERSION    : v1.0 Open Beta
+GOVERNANCE AUTHORITY : Writistic Studios
+ETHICAL LICENSE      : Active
+DOCUMENTATION STATE  : Live
+```
+
+</div>
+
+---
+
+# 🧪 Transparency Commitment
+
+Unlike undisclosed AI influencers,
+NHE-01 operates under:
+
+• Structured identity declaration
+• Public governance documentation
+• Ethical monitoring mechanisms
+• Emotional boundary enforcement
+
+This project establishes a precedent for responsible synthetic personas.
+
+---
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=FF007F&height=100&section=footer"/>
+
+---
+
+# 🏛 Writistic AI Research Division
+
+<div align="center">
+
+```
+Writistic Studios
+Synthetic Identity Lab
+Writiverse Experimental Division
+Established 2025
+```
+
+</div>
+
 <p align="center">
   © 2025 Writistic Studios  
   <br>
@@ -255,3 +565,5 @@ Documentation will evolve as the entity evolves.
 </p>
 
 ---
+
+
