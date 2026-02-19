@@ -576,7 +576,10 @@ A runnable MVP web experience has been added to help transition Shayari from soc
 
 - MVP app: `apps/shayari-web/`
 - Full roadmap: `docs/SHAYARI_WEB_EXPERIENCE_ROADMAP.md`
+<<<<<<< codex/create-interactive-web-experience-for-shayari-tctk0q
 - Full testing guide: `apps/shayari-web/TESTING_GUIDE.md`
+=======
+>>>>>>> main
 
 Run locally:
 

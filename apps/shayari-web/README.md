@@ -35,6 +35,7 @@ Then open: `http://localhost:8787`
 2. Add low-latency streaming text + TTS for natural conversation feel.
 3. Add memory service (Redis/Postgres/vector DB) for returning users.
 4. Add consent banner + privacy policy acknowledgement.
+<<<<<<< codex/create-interactive-web-experience-for-shayari-tctk0q
 
 ## Complete testing walkthrough
 
@@ -42,3 +43,5 @@ If you want full beginner-friendly setup + testing steps (including where to run
 
 - `apps/shayari-web/TESTING_GUIDE.md`
 
+=======
+>>>>>>> main
