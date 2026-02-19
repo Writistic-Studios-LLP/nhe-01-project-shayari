@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shayari (NHE-01) Web Experience</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="avatar-panel">
+        <div class="avatar" id="avatar" aria-label="Shayari avatar">
+          <div class="orb"></div>
+        </div>
+        <h1>Shayari (NHE-01)</h1>
+        <p class="disclosure">Synthetic identity disclosed • Human-governed project</p>
+      </section>
+
+      <section class="chat-panel">
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="chat-form" class="composer">
+          <input id="chat-input" type="text" placeholder="Talk to Shayari..." required />
+          <button type="submit">Send</button>
+        </form>
+
+        <div class="controls">
+          <button id="voice-input">🎙️ Listen</button>
+          <button id="voice-output">🔊 Speak replies</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
