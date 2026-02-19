@@ -566,27 +566,3 @@ Established 2025
 
 ---
 
-
-
----
-
-## 🧪 Shayari Web Experience (New)
-
-A runnable MVP web experience has been added to help transition Shayari from social-only presence to interactive web persona.
-
-- MVP app: `apps/shayari-web/`
-- Full roadmap: `docs/SHAYARI_WEB_EXPERIENCE_ROADMAP.md`
-<<<<<<< codex/create-interactive-web-experience-for-shayari-tctk0q
-- Full testing guide: `apps/shayari-web/TESTING_GUIDE.md`
-=======
->>>>>>> main
-
-Run locally:
-
-```bash
-cd apps/shayari-web
-export GEMINI_API_KEY="your_api_key"
-node server.js
-```
-
-Open `http://localhost:8787`.
