@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHE - 01 Personal Assistance and Observation Module</title>
+    
+    <!-- Fonts & Tailwind for UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js and Post-Processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+    <!-- MediaPipe AI Models & Drawing Utils -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; color: #00ffff; font-family: 'Rajdhani', sans-serif; user-select: none; }
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        .scanlines { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 3px 100%; z-index: 10; pointer-events: none; opacity: 0.4; }
+        
+        /* Initialization Screen */
+        #auth-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 5, 10, 0.98); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(15px); transition: opacity 1s ease; padding: 20px;}
+        .auth-box { border: 1px solid #0ff; padding: 20px; text-align: center; background: rgba(0,255,255,0.05); box-shadow: 0 0 30px rgba(0,255,255,0.1); width: 100%; max-width: 500px; }
+        @media (min-width: 768px) { .auth-box { padding: 40px; } }
+        
+        /* UI Layer - Responsive */
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 1rem; box-sizing: border-box; opacity: 0; transition: opacity 1.5s ease; overflow-y: auto; overflow-x: hidden; }
+        @media (min-width: 768px) { .ui-layer { padding: 2rem; overflow: hidden; } }
+
+        .panel { background: rgba(0, 20, 20, 0.6); border: 1px solid rgba(0, 255, 255, 0.3); backdrop-filter: blur(4px); padding: 1rem; pointer-events: auto; box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); position: relative; width: 100%; }
+        @media (min-width: 768px) { .panel { padding: 1.5rem; } }
+        
+        .panel::before { content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 10px; border-top: 2px solid #0ff; border-left: 2px solid #0ff; }
+        .panel::after { content: ''; position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-bottom: 2px solid #0ff; border-right: 2px solid #0ff; }
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; margin: 0; text-shadow: 0 0 10px #0ff; }
+        
+        .btn-cyber { background: rgba(0, 255, 255, 0.1); color: #0ff; border: 1px solid #0ff; padding: 12px 20px; font-family: 'Orbitron', sans-serif; font-size: 1rem; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden; letter-spacing: 2px; pointer-events: auto; }
+        @media (min-width: 768px) { .btn-cyber { padding: 15px 30px; font-size: 1.1rem; } }
+        .btn-cyber:hover { background: rgba(0, 255, 255, 0.3); box-shadow: 0 0 30px rgba(0, 255, 255, 0.6); transform: scale(1.02); }
+        .btn-cyber:active { transform: scale(0.98); }
+        
+        /* FIXED Real-time WebCam + Canvas Overlay (Mobile Responsive) */
+        #webcam-container { 
+            position: fixed; bottom: 1rem; right: 1rem; 
+            width: 140px; height: 105px; /* Compact on mobile */
+            border: 1px solid #0ff; z-index: 30; pointer-events: none; background: #000; 
+            box-shadow: 0 0 10px rgba(0,255,255,0.2); overflow: hidden; 
+        }
+        @media (min-width: 768px) {
+            #webcam-container {
+                bottom: 2rem; right: 2rem; 
+                width: 320px; height: 240px; 
+                box-shadow: 0 0 20px rgba(0,255,255,0.2);
+            }
+        }
+        #webcam { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.01; z-index: -1; transform: scaleX(-1); } 
+        #tracking-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 31; pointer-events: none; }
+
+        .glitch-text { animation: glitch 2s infinite; }
+        @keyframes glitch { 0% { text-shadow: 0.05em 0 0 #00fffc, -0.05em -0.025em 0 #fc00ff; } 15% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.025em 0 #fc00ff; } 50% { text-shadow: 0.025em 0.05em 0 #00fffc, 0.05em 0 0 #fc00ff; } 100% { text-shadow: -0.025em 0 0 #00fffc, -0.025em -0.025em 0 #fc00ff; } }
+        
+        .data-value { color: #fff; text-shadow: 0 0 5px #fff; transition: color 0.3s ease; }
+        #ai-terminal { width: 100%; height: 100px; background: rgba(0, 10, 10, 0.8); border: 1px solid #0ff; margin-top: 15px; padding: 10px; font-family: 'Courier New', Courier, monospace; font-size: 0.7rem; color: #0f0; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-end; }
+        @media (min-width: 768px) { #ai-terminal { height: 140px; font-size: 0.8rem; } }
+        
+        .log-line { margin: 2px 0; opacity: 0; animation: fadeIn 0.2s forwards; }
+        .log-sys::before { content: 'SYS> '; color: #0ff; }
+        .log-nhe::before { content: 'NHE-01> '; color: #f0f; }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* Vitals HUD */
+        .vital-bar-container { width: 100%; height: 6px; background: rgba(0,255,255,0.1); margin-top: 4px; border: 1px solid rgba(0,255,255,0.3); }
+        .vital-bar { height: 100%; background: #00ffff; width: 50%; transition: width 0.5s ease; }
+
+        .pulse-text { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <!-- SYSTEM STARTUP SCREEN -->
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h1 class="text-2xl md:text-3xl mb-2 font-bold tracking-widest text-cyan-400 glitch-text">NHE - 01</h1>
+            <h2 class="text-xs md:text-sm text-gray-400 mb-6 md:mb-8 tracking-widest uppercase">Personal Assistance & Observation Module</h2>
+            
+            <div class="text-[10px] md:text-xs text-gray-500 mb-6 md:mb-8 leading-relaxed text-left border-l-2 border-cyan-400 pl-4 font-mono">
+                [SYSTEM CHECKS] <br><br>
+                > OPTICAL OVERLAY TRACKING : <span class="text-green-400">READY</span><br>
+                > DROWSINESS ALARMS : <span class="text-green-400">READY</span><br>
+                > SKELETAL KINETIC DECODING : <span class="text-green-400">READY</span><br>
+                > COMPANION MATRIX : <span class="text-yellow-400">AWAITING TRIGGER</span>
+            </div>
+
+            <button class="btn-cyber mb-4 w-full" id="btn-power" onclick="powerOnSystem()">ACTIVATE MODULE</button>
+            <p id="auth-status" class="mt-4 text-xs text-cyan-500 font-mono"></p>
+        </div>
+    </div>
+
+    <!-- 3D HOLOGRAM CANVAS -->
+    <div id="canvas-container"></div>
+    <div class="scanlines"></div>
+
+    <!-- MAIN UI OVERLAY -->
+    <div class="ui-layer" id="main-ui">
+        <!-- Top Header (Stacks on mobile, row on desktop) -->
+        <div class="flex flex-col md:flex-row justify-between items-start w-full gap-4 pointer-events-none">
+            
+            <!-- Core Terminal Panel -->
+            <div class="panel w-full md:w-[480px] pointer-events-auto shrink-0 relative z-10">
+                <div class="flex justify-between items-end mb-2">
+                    <h1 class="text-xl md:text-2xl glitch-text tracking-wider">NHE - 01</h1>
+                    <span id="personality-badge" class="text-[8px] md:text-[10px] text-cyan-400 border border-cyan-400 px-1 pulse-text">STANDARD OBSERVATION</span>
+                </div>
+                <h2 class="text-[10px] md:text-xs text-gray-400 mb-4 tracking-widest uppercase">Personal Assistance Engine</h2>
+                
+                <div class="text-[9px] md:text-xs text-gray-400 mt-2 grid grid-cols-2 gap-2 font-mono bg-black/30 p-2 border border-cyan-900">
+                    <div>LINK: <span class="data-value text-green-400">ACTIVE</span></div>
+                    <div>MODE: <span class="data-value" id="mode-display">NORMAL</span></div>
+                    <div>STATE: <span class="data-value font-bold text-cyan-400" id="emotion-state">ANALYZING...</span></div>
+                    <div>ACTION: <span class="data-value text-yellow-400" id="action-state">SCANNING</span></div>
+                </div>
+
+                <!-- AI Terminal Box -->
+                <div id="ai-terminal">
+                    <div class="log-line log-sys">SYSTEM ONLINE. OPTICAL VECTORS ACTIVATED.</div>
+                </div>
+            </div>
+
+            <!-- Real-Time Telemetry HUDs -->
+            <div class="flex flex-col gap-4 pointer-events-none w-full md:w-auto mt-4 md:mt-0 relative z-10">
+                
+                <!-- Cognitive Profile HUD -->
+                <div class="panel w-full md:w-72 text-left">
+                    <h3 class="text-xs md:text-sm text-purple-400 mb-2 tracking-widest border-b border-purple-400/30 pb-1">COGNITIVE PROFILE</h3>
+                    <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[9px] md:text-[10px] text-gray-400 font-mono">
+                        <div>ATTENTION:</div><div id="prof-focus" class="text-right text-green-400 font-bold">HIGH FOCUS</div>
+                        <div>FATIGUE:</div><div id="prof-fatigue" class="text-right text-cyan-400">RESTED</div>
+                        <div>HOSTILITY:</div><div id="prof-hostile" class="text-right text-cyan-400">N/A</div>
+                    </div>
+                </div>
+
+                <!-- Vitals -->
+                <div class="panel w-full md:w-72 text-left">
+                    <h3 class="text-xs md:text-sm text-green-400 mb-4 tracking-widest border-b border-green-400/30 pb-1" id="vitals-title">BIOMETRIC VITALS</h3>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-[10px] md:text-xs text-gray-300">
+                            <span id="bpm-label">HEART RATE</span><span id="vital-bpm" class="text-green-400 font-bold">72 BPM</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-[10px] md:text-xs text-gray-300">
+                            <span id="stress-label">STRESS METRIC</span><span id="vital-stress-val" class="text-yellow-400">15%</span>
+                        </div>
+                        <div class="vital-bar-container"><div id="vital-stress-bar" class="vital-bar !bg-yellow-400" style="width: 15%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] md:text-xs text-gray-300">
+                            <span>RESPIRATION</span><span id="vital-resp" class="text-cyan-400">14 RPM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Controls (Stacks on mobile, row on desktop) -->
+        <div class="flex flex-col md:flex-row justify-between items-end w-full pb-8 pointer-events-none relative mt-4 md:mt-0 z-10">
+            
+            <!-- Activity & Telemetry State Panel -->
+            <div class="flex flex-col gap-4 pointer-events-none w-full md:w-auto">
+                <div class="panel w-full md:w-96 text-left">
+                    <h3 class="text-xs md:text-sm text-cyan-400 mb-2 tracking-widest border-b border-cyan-400/30 pb-1">LIVE OPTICAL TELEMETRY</h3>
+                    <div class="grid grid-cols-4 gap-1 text-[8px] md:text-[10px] text-gray-400 font-mono mb-2 bg-black/40 p-1 text-center">
+                        <div>E.A.R: <br><span id="stat-ear" class="text-cyan-400">--</span></div>
+                        <div>M.A.R: <br><span id="stat-mar" class="text-cyan-400">--</span></div>
+                        <div>BROW: <br><span id="stat-brow" class="text-cyan-400">--</span></div>
+                        <div>SMILE: <br><span id="stat-curve" class="text-cyan-400">--</span></div>
+                    </div>
+                </div>
+
+                <div class="panel w-full md:w-96 text-left">
+                    <h3 class="text-xs md:text-sm text-purple-400 mb-2 tracking-widest border-b border-purple-400/30 pb-1">BEHAVIORAL ANALYSIS</h3>
+                    <div class="text-[10px] md:text-xs text-gray-300 leading-relaxed font-mono" id="behavior-text">
+                        NHE-01 is actively monitoring local physical space. Awaiting optical input.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fallback Image Loader -->
+            <div id="fallback-container" class="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-auto" style="display: none; bottom: 2rem;">
+                <span class="text-yellow-400 text-[10px] md:text-xs tracking-widest bg-black bg-opacity-70 p-2 border border-yellow-400 text-center whitespace-nowrap">LOCAL VISUAL ASSET NOT FOUND. USING CLOUD BACKUP.</span>
+                <input type="file" id="image-upload" accept="image/*" style="display:none;">
+                <button class="btn-cyber !border-yellow-400 !text-yellow-400 !bg-yellow-400/10 !text-[10px] md:!text-sm" onclick="document.getElementById('image-upload').click()">
+                    [ INJECT VISUAL DATA MANUALLY ]
+                </button>
+            </div>
+            
+            <div class="hidden md:block absolute bottom-4 right-4 text-[10px] text-cyan-600 font-mono tracking-widest text-right opacity-50">
+                ENTITY: NHE-01 | DIRECTIVE: STRICT OBSERVE | CAM: ONLINE
+            </div>
+        </div>
+    </div>
+
+    <!-- FIXED Real-Time WebCam and Mesh Canvas Tracking -->
+    <div id="webcam-container">
+        <!-- Must be visible in DOM flow but hidden via opacity so the browser keeps processing it -->
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="tracking-canvas"></canvas>
+        <div class="absolute bottom-1 right-1 text-[8px] md:text-[10px] text-cyan-400 bg-black px-1 z-40 border border-cyan-400/50">OPTIC SENSOR OVERLAY</div>
+    </div>
+
+<script>
+/**
+ * ---------------------------------------------------------
+ * PROJECT: NHE-01 // Personal Assistance Module
+ * Features: Auto-Rotation, Perfected Emotion AI, Validated Tracking Masks, GenZ Mode, Mobile Layout
+ * ---------------------------------------------------------
+ */
+
+// ==========================================
+// 1. GLOBAL STATE & CONFIG
+// ==========================================
+let scene, camera, renderer, composer, clock;
+let particleSystem, skullMesh, hudRings = [], basePlatform;
+let baseUniforms;
+
+let isAuthorized = false; // Master lock for tracking
+
+// Rotation & Interaction
+let isAutoRotating = true;
+let autoRotationAngle = 0;
+let currentRotationX = 0, currentRotationY = 0, currentZoom = 15;
+let targetRotationX = 0, targetRotationY = 0, targetZoom = 15;
+let isDragging = false, previousMousePosition = { x: 0, y: 0 };
+let autoRotateTimeout;
+
+// Audio Context & Voice
+let audioCtx, droneOsc, lfo, gainNode;
+let synth = window.speechSynthesis;
+let lastSpokenTime = 0;
+let lastGestureSpoken = "";
+let lastGestureSpeechTime = 0;
+
+// Personality & Logic Engine
+let personalityMode = "NORMAL"; // Switches to "GENZ"
+let hasPromptedCompanion = false;
+let isAwaitingModeSwitch = false;
+let modeSwitchTimeout = null;
+
+let emotionState = "NEUTRAL";
+let emotionCounters = { happy: 0, sad: 0, angry: 0, surprised: 0, fatigue: 0 };
+let vitalBpm = 72;
+let vitalStress = 15;
+
+let lastFaceDetectedTime = Date.now();
+
+// Rolling Averages arrays for Emotion Smoothing
+const historySize = 10;
+let browHistory = [], smileHistory = [], earHistory = [], marHistory = [];
+
+// Gesture History (for Head Nods)
+let noseHistoryY = [];
+
+// Video & Canvas Context
+const videoElement = document.getElementById('webcam');
+const canvasElement = document.getElementById('tracking-canvas');
+let canvasCtx;
+
+// Render State Objects
+let latestFaceResults = null;
+let latestHandResults = null;
+
+// The requested filename. If it fails, we fall back to a high-quality online portrait.
+const IMAGE_SRC = "WhatsApp Image 2026-02-23 at 12.57.32 AM.jpeg";
+const FALLBACK_IMAGE_SRC = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=80";
+
+// ==========================================
+// 2. DICTIONARY / PERSONALITY ENGINE
+// ==========================================
+const Dialogue = {
+    NORMAL: {
+        fatigue: "Warning. Critical fatigue detected. You are falling asleep. Please wake up, hydrate immediately, and engage in physical activity.",
+        angry: "Elevated stress and anger detected. Your heart rate is increasing. Please take a moment to remain calm.",
+        happy: "I perceive a positive emotional state. It is excellent to see you smiling.",
+        sad: "Negative emotional variance registered. You appear sad. Initiating uplifting auditory sequences to improve your mood.",
+        surprised: "You appear highly surprised. I am logging this anomaly.",
+        neutral: "You appear calm and neutral. I am observing standard parameters.",
+        promptCompanion: "I notice you are in a positive mood. Would you like to switch to Gen-Z Companion Mode? Please nod your head 'YES' or give a 'THUMBS UP' to confirm.",
+        confirmCompanion: "Understood. Re-routing communication protocols. Gen-Z Companion Mode engaged.",
+        declineCompanion: "Understood. I will remain in standard strict observation mode."
+    },
+    GENZ: {
+        fatigue: "BRO WAKE UP! You are literally asleep right now! Go drink some water and touch grass immediately, no cap!",
+        angry: "Yikes, bro is big mad. Your stress levels are giving major red flags. Take a deep breath fr fr.",
+        happy: "Passing the vibe check! You are literally glowing right now, love that for you.",
+        sad: "Aw bestie, major sad boi hours detected. Let me play a bop to fix the vibes, hold up.",
+        surprised: "Bro is shook! What just happened? Spill the tea, my sensors are spiking.",
+        neutral: "Vibes are chilling. Just observing the simulation fr.",
+    }
+};
+
+const UI_Text = {
+    NORMAL: {
+        badge: "STANDARD OBSERVATION", mode: "NORMAL", 
+        titles: { vitals: "BIOMETRIC VITALS", bpm: "HEART RATE", stress: "STRESS METRIC" }
+    },
+    GENZ: {
+        badge: "GEN-Z COMPANION MODE", mode: "GEN-Z VIBE", 
+        titles: { vitals: "VIBE CHECK STATS", bpm: "HEART DRIP", stress: "ANXIETY LEVEL" }
+    }
+}
+
+// ==========================================
+// 3. THREE.JS INITIALIZATION
+// ==========================================
+function initThreeJS() {
+    const container = document.getElementById('canvas-container');
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050510, 0.02);
+
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    // Move camera further back on mobile for better framing
+    currentZoom = window.innerWidth < 768 ? 20 : 15;
+    targetZoom = currentZoom;
+    camera.position.set(0, 1, currentZoom);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    clock = new THREE.Clock();
+
+    const renderScene = new THREE.RenderPass(scene, camera);
+    const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    bloomPass.threshold = 0.1; bloomPass.strength = 1.8; bloomPass.radius = 0.5;
+
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+
+    buildHologramEnvironment();
+    setupEventListeners();
+    animate();
+}
+
+function buildHologramEnvironment() {
+    const geometry = new THREE.PlaneGeometry(6, 7.5, 250, 300); 
+    const posAttribute = geometry.attributes.position;
+    for(let i = 0; i < posAttribute.count; i++) {
+        let x = posAttribute.getX(i);
+        posAttribute.setZ(i, -Math.pow(Math.abs(x) * 0.3, 2.0));
+    }
+    geometry.computeVertexNormals();
+
+    baseUniforms = {
+        uTime: { value: 0.0 }, uTexture: { value: new THREE.Texture() }, uHasTexture: { value: 0.0 },
+        uColorPrimary: { value: new THREE.Color(0x00ffff) }, uColorSecondary: { value: new THREE.Color(0xaa00ff) },
+        uStateMode: { value: 0.0 } 
+    };
+
+    const material = new THREE.ShaderMaterial({
+        uniforms: baseUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `
+            uniform float uTime; uniform sampler2D uTexture; uniform float uHasTexture; uniform float uStateMode;
+            varying vec2 vUv; varying vec3 vPos; varying float vBrightness;
+            void main() {
+                vUv = uv; vec3 pos = position; vBrightness = 0.5;
+                if (uHasTexture > 0.5) {
+                    vec4 tex = texture2D(uTexture, vUv);
+                    vBrightness = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+                    float faceMask = smoothstep(0.45, 0.15, distance(vUv, vec2(0.5, 0.5)));
+                    if (vBrightness < 0.9) pos.z += vBrightness * faceMask * 2.5; else pos.z -= 0.5; 
+                }
+                if (uStateMode == 3.0 || uStateMode == 4.0 || uStateMode == 5.0) pos.x += sin(uTime * 50.0 + pos.y * 20.0) * 0.03; 
+                pos.y += sin(uTime * 2.0 + pos.x * 5.0) * 0.02; 
+                vPos = pos; vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                gl_PointSize = (14.0 / -mvPosition.z) * (1.0 + 0.3 * sin(uTime * 4.0 + pos.y * 5.0));
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D uTexture; uniform float uHasTexture; uniform vec3 uColorPrimary; uniform vec3 uColorSecondary; uniform float uTime; uniform float uStateMode;
+            varying vec2 vUv; varying vec3 vPos; varying float vBrightness;
+            void main() {
+                float dist = length(gl_PointCoord - vec2(0.5)); if (dist > 0.5) discard;
+                vec3 priColor = uColorPrimary; vec3 secColor = uColorSecondary;
+                
+                if (uStateMode == 1.0) { priColor = vec3(1.0, 0.4, 0.7); secColor = vec3(1.0, 0.8, 0.2); } // Happy
+                else if (uStateMode == 2.0) { priColor = vec3(0.0, 0.3, 1.0); secColor = vec3(0.0, 0.8, 1.0); } // Sad
+                else if (uStateMode == 3.0) { priColor = vec3(1.0, 0.0, 0.0); secColor = vec3(0.5, 0.0, 0.0); } // Alarm
+                else if (uStateMode == 4.0) { priColor = vec3(1.0, 0.4, 0.0); secColor = vec3(1.0, 0.0, 0.0); } // Angry
+
+                vec3 color = mix(secColor, priColor, (vPos.y + 3.75) / 7.5);
+                float alpha = 0.6 * (1.0 - (dist * 2.0));
+
+                if (uHasTexture > 0.5) {
+                    vec4 texColor = texture2D(uTexture, vUv);
+                    float sat = (max(max(texColor.r, texColor.g), texColor.b) - min(min(texColor.r, texColor.g), texColor.b)) / max(max(texColor.r, texColor.g), texColor.b);
+                    if (vBrightness > 0.85 && sat < 0.15) alpha *= 0.02; 
+                    else { color = mix(color, texColor.rgb, uStateMode == 0.0 ? 0.75 : 0.4); color *= (vBrightness + 0.6); alpha += vBrightness * 0.4; }
+                } else alpha *= 0.4;
+
+                color += color * (sin(vPos.y * 50.0 - uTime * 12.0) * 0.5 + 0.5) * 0.4; 
+                gl_FragColor = vec4(color, alpha);
+            }
+        `
+    });
+
+    particleSystem = new THREE.Points(geometry, material); scene.add(particleSystem);
+
+    const skullMat = new THREE.MeshBasicMaterial({ color: 0xaa00ff, wireframe: true, transparent: true, opacity: 0.1 });
+    skullMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.4, 3), skullMat);
+    skullMesh.position.set(0, 0.5, -1.0); scene.add(skullMesh);
+
+    basePlatform = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3.0, 0.2, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.3 }));
+    basePlatform.position.y = -3.8; scene.add(basePlatform);
+    scene.add(new THREE.GridHelper(6, 10, 0x00ffff, 0x004444).translateY(-3.7));
+}
+
+// ==========================================
+// 4. AUDIO & VOICE SYNTHESIS
+// ==========================================
+function initAudio() {
+    if(audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    droneOsc = audioCtx.createOscillator(); droneOsc.type = 'sawtooth'; droneOsc.frequency.value = 45;
+    lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.5;
+    const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 20;
+    lfo.connect(lfoGain); lfoGain.connect(droneOsc.frequency);
+
+    const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 200;
+    gainNode = audioCtx.createGain(); gainNode.gain.value = 0.05; 
+    
+    droneOsc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination);
+    droneOsc.start(); lfo.start();
+    synth.getVoices(); 
+}
+
+function getVoice() {
+    const voices = synth.getVoices();
+    return voices.find(v => v.name.includes('Google UK English Female')) ||
+           voices.find(v => v.name.includes('Zira')) || voices.find(v => v.name.includes('Samantha')) ||
+           voices.find(v => v.name.toLowerCase().includes('female')) || voices[0];
+}
+
+function logTerminal(type, message) {
+    const terminal = document.getElementById('ai-terminal');
+    const newLine = document.createElement('div');
+    newLine.className = `log-line log-${type}`;
+    terminal.appendChild(newLine);
+    if (terminal.childElementCount > 8) terminal.removeChild(terminal.firstChild);
+    terminal.scrollTop = terminal.scrollHeight; 
+
+    let i = 0;
+    function typeWriter() { if (i < message.length) { newLine.innerText += message.charAt(i); i++; setTimeout(typeWriter, 15); } }
+    typeWriter();
+}
+
+function speakAI(text, forcePriority = false) {
+    if (!forcePriority && Date.now() - lastSpokenTime < 6000) return; // Prevent spam
+    lastSpokenTime = Date.now();
+
+    logTerminal('nhe', text);
+    
+    if ('speechSynthesis' in window) {
+        synth.cancel(); 
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.voice = getVoice();
+        if (personalityMode === "GENZ") { utterance.pitch = 1.3; utterance.rate = 1.15; }
+        else { utterance.pitch = 1.0; utterance.rate = 1.0; }
+        synth.speak(utterance);
+    }
+}
+
+function playHappyMusic() {
+    if(!audioCtx) return;
+    const notes = [261.63, 329.63, 392.00, 523.25, 659.25]; let startTime = audioCtx.currentTime;
+    for(let i=0; i<10; i++) {
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = 'sine'; osc.frequency.value = notes[i % notes.length];
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0, startTime + i * 0.15); gain.gain.linearRampToValueAtTime(0.1, startTime + i * 0.15 + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, startTime + i * 0.15 + 0.15);
+        osc.start(startTime + i * 0.15); osc.stop(startTime + i * 0.15 + 0.15);
+    }
+}
+
+function playAlarm() {
+    if(!audioCtx) return;
+    const playBeep = (delay) => {
+        setTimeout(() => {
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.4);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        }, delay);
+    };
+    playBeep(0); playBeep(200); playBeep(400); playBeep(600);
+}
+
+// ==========================================
+// 5. SYSTEM INITIALIZATION
+// ==========================================
+async function powerOnSystem() {
+    if(!audioCtx) initAudio();
+    if(audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
+    
+    isAuthorized = true; // Unlock tracking engine globally
+    lastFaceDetectedTime = Date.now();
+    
+    document.getElementById('auth-screen').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-ui').style.opacity = '1';
+        
+        // Load Image
+        new THREE.TextureLoader().load(IMAGE_SRC, 
+            (tex) => { 
+                tex.flipY = true; 
+                baseUniforms.uTexture.value = tex; 
+                baseUniforms.uHasTexture.value = 1.0; 
+                speakAI("Initialization complete. I am NHE-01. Analyzing user state and physical environment.", true); 
+            }, 
+            undefined, 
+            () => { 
+                // Fallback
+                new THREE.TextureLoader().load(FALLBACK_IMAGE_SRC, (fallbackTex) => {
+                    fallbackTex.flipY = true;
+                    baseUniforms.uTexture.value = fallbackTex;
+                    baseUniforms.uHasTexture.value = 1.0;
+                });
+                document.getElementById('fallback-container').style.display = 'flex'; 
+                speakAI("Local visual asset not found. Cloud backup integrated. Ready for manual injection.", true);
+            }
+        );
+
+        initAI_Tracking();
+
+    }, 1000);
+}
+
+document.getElementById('image-upload').addEventListener('change', function(e) {
+    if (e.target.files[0]) {
+        new THREE.TextureLoader().load(URL.createObjectURL(e.target.files[0]), (tex) => {
+            tex.flipY = true; baseUniforms.uTexture.value = tex; baseUniforms.uHasTexture.value = 1.0;
+            document.getElementById('fallback-container').style.display = 'none'; speakAI("Visual integrated. Systems nominal.", true);
+        });
+    }
+});
+
+// ==========================================
+// 6. TRACKING, GESTURES & EMOTION AI
+// ==========================================
+function switchMode(newMode) {
+    personalityMode = newMode;
+    document.getElementById('personality-badge').innerText = UI_Text[newMode].badge;
+    document.getElementById('mode-display').innerText = UI_Text[newMode].mode;
+    document.getElementById('vitals-title').innerText = UI_Text[newMode].titles.vitals;
+    document.getElementById('bpm-label').innerText = UI_Text[newMode].titles.bpm;
+    document.getElementById('stress-label').innerText = UI_Text[newMode].titles.stress;
+    
+    if(newMode === "GENZ") {
+        document.getElementById('personality-badge').classList.replace('text-cyan-400', 'text-pink-400');
+        document.getElementById('personality-badge').classList.replace('border-cyan-400', 'border-pink-400');
+    }
+}
+
+function analyzeHandGesture(landmarks) {
+    // Corrected relative distance calculation (ignores strict Z-depth which fails often)
+    const dist = (p1, p2) => Math.hypot(landmarks[p1].x - landmarks[p2].x, landmarks[p1].y - landmarks[p2].y);
+    
+    // Check if finger tips are further from the WRIST (0) than the PIP joints are
+    const iOpen = dist(8, 0) > dist(6, 0);
+    const mOpen = dist(12, 0) > dist(10, 0);
+    const rOpen = dist(16, 0) > dist(14, 0);
+    const pOpen = dist(20, 0) > dist(18, 0);
+    
+    // Thumb: Is the tip further out from the hand base (17) than the thumb knuckle (2)
+    const tOpen = dist(4, 17) > dist(2, 17); 
+
+    const openFingers = [tOpen, iOpen, mOpen, rOpen, pOpen];
+    const count = openFingers.filter(Boolean).length;
+
+    if (count === 0) return "FIST";
+    if (count === 5) return "OPEN_PALM";
+    
+    // THUMBS UP logic specifically mapped to screen coordinate Y (up is smaller Y)
+    if (count === 1 && tOpen && !iOpen && !mOpen) {
+        if (landmarks[4].y < landmarks[3].y && landmarks[4].y < landmarks[5].y) return "THUMBS_UP";
+        if (landmarks[4].y > landmarks[3].y && landmarks[4].y > landmarks[5].y) return "THUMBS_DOWN";
+    }
+    
+    if (count === 1 && iOpen && !tOpen) return "POINTING_ONE";
+    if (count === 2 && iOpen && mOpen && !rOpen && !pOpen) return "PEACE_SIGN_TWO";
+    
+    return `SHOWING_${count}_FINGERS`;
+}
+
+function detectHeadNod(landmarks) {
+    // Calculate vertical position of nose relative to the chin and top of head
+    // to determine pitch of the head independently of camera distance.
+    const headTop = landmarks[10];
+    const chin = landmarks[152];
+    const nose = landmarks[1];
+    
+    const headHeight = Math.hypot(headTop.x - chin.x, headTop.y - chin.y);
+    const noseToTop = Math.hypot(nose.x - headTop.x, nose.y - headTop.y);
+    
+    const pitchRatio = noseToTop / headHeight; // Normal is usually around 0.45 - 0.55
+    
+    noseHistoryY.push(pitchRatio);
+    if(noseHistoryY.length > 15) noseHistoryY.shift();
+    
+    if(noseHistoryY.length === 15) {
+        const minPitch = Math.min(...noseHistoryY);
+        const maxPitch = Math.max(...noseHistoryY);
+        
+        // High variance in pitch means active nodding
+        if (maxPitch - minPitch > 0.08) return "NODDING";
+    }
+    return "STILL";
+}
+
+// Perfected Render Loop for Tracking Overlay
+function renderTrackingCanvas() {
+    if (!canvasCtx || !isAuthorized) {
+        requestAnimationFrame(renderTrackingCanvas);
+        return;
+    }
+
+    if (videoElement.readyState >= 2 && videoElement.videoWidth > 0) {
+        // Dynamically size canvas to exact video resolution for perfect mapping
+        if (canvasElement.width !== videoElement.videoWidth) {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+        }
+
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        // Mirror the drawing space to match webcam mirroring
+        canvasCtx.translate(canvasElement.width, 0);
+        canvasCtx.scale(-1, 1);
+        
+        // Draw the physical video frame
+        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        
+        // Darken the frame so the neon tracking lines pop
+        canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+        // Overlay Face Mesh
+        if (latestFaceResults && latestFaceResults.multiFaceLandmarks) {
+            for (const l of latestFaceResults.multiFaceLandmarks) {
+                window.drawConnectors(canvasCtx, l, window.FACEMESH_TESSELATION, {color: '#00ffff', lineWidth: 1.5});
+            }
+        }
+
+        // Overlay Hands Skeleton
+        if (latestHandResults && latestHandResults.multiHandLandmarks) {
+            for (const l of latestHandResults.multiHandLandmarks) {
+                window.drawConnectors(canvasCtx, l, window.HAND_CONNECTIONS, {color: '#ff00ff', lineWidth: 2.5});
+                window.drawLandmarks(canvasCtx, l, {color: '#00ffff', lineWidth: 1, radius: 2});
+            }
+        }
+        canvasCtx.restore();
+    }
+    requestAnimationFrame(renderTrackingCanvas);
+}
+
+function processHandLogic(results) {
+    if (!isAuthorized) return;
+    
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        let handGesture = analyzeHandGesture(results.multiHandLandmarks[0]);
+        
+        let actionText = "";
+        if (handGesture === "FIST") actionText = "User is holding an object or clenching a fist.";
+        else if (handGesture === "OPEN_PALM") actionText = "User is showing an open palm.";
+        else if (handGesture === "THUMBS_UP") actionText = "User is giving a thumbs up.";
+        else if (handGesture === "THUMBS_DOWN") actionText = "User is giving a thumbs down.";
+        else if (handGesture === "PEACE_SIGN_TWO") actionText = "User is showing a peace sign (two fingers).";
+        else if (handGesture === "POINTING_ONE") actionText = "User is pointing one finger.";
+        else actionText = `User is ${handGesture.replace(/_/g, ' ').toLowerCase()}.`;
+
+        if (personalityMode === "GENZ") actionText = `Bro is literally doing a ${handGesture.replace(/_/g, ' ')} rn. Sensors are tracking it.`;
+        document.getElementById('behavior-text').innerText = actionText;
+
+        // Voice Callouts
+        if (handGesture !== "UNKNOWN" && !handGesture.includes("SHOWING") && (handGesture !== lastGestureSpoken || Date.now() - lastGestureSpeechTime > 8000)) {
+            lastGestureSpoken = handGesture;
+            lastGestureSpeechTime = Date.now();
+            let speechTxt = "";
+            if(personalityMode === "GENZ") {
+                speechTxt = `I see you doing the ${handGesture.replace(/_/g, ' ').toLowerCase()}, very valid.`;
+                if(handGesture === "FIST") speechTxt = "Bro is clenching a fist, okay we see you.";
+                if(handGesture === "POINTING_ONE") speechTxt = "You are pointing at something, pop off.";
+                if(handGesture === "PEACE_SIGN_TWO") speechTxt = "Peace sign detected, immaculate vibes.";
+                if(handGesture === "THUMBS_UP") speechTxt = "Thumbs up received, bet.";
+            } else {
+                speechTxt = `You are ${handGesture.replace(/_/g, ' ').toLowerCase()}.`;
+                if(handGesture === "FIST") speechTxt = "I notice you are holding an object or making a fist.";
+                if(handGesture === "POINTING_ONE") speechTxt = "You are pointing one finger.";
+                if(handGesture === "PEACE_SIGN_TWO") speechTxt = "You are showing the peace sign.";
+            }
+            if(emotionState === "NEUTRAL" || emotionState === "HAPPY") {
+                speakAI(speechTxt, false);
+            }
+        }
+
+        // Mode Switch Logic
+        if (isAwaitingModeSwitch) {
+            if (handGesture === "THUMBS_UP") {
+                isAwaitingModeSwitch = false; clearTimeout(modeSwitchTimeout);
+                switchMode("GENZ");
+                speakAI(Dialogue.GENZ.confirmCompanion, true);
+            } else if (handGesture === "THUMBS_DOWN") {
+                isAwaitingModeSwitch = false; clearTimeout(modeSwitchTimeout);
+                speakAI(Dialogue.NORMAL.declineCompanion, true);
+            }
+        }
+    } else if (document.getElementById('behavior-text').innerText.includes("hand") || document.getElementById('behavior-text').innerText.includes("Bro is literally")) {
+        document.getElementById('behavior-text').innerText = personalityMode === "GENZ" ? "Bro is chilling. No wild hand movements detected." : "NHE-01 is tracking structural deviations. User is currently seated.";
+    }
+}
+
+// Utility: Array Averaging
+const getAvg = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+function processFaceLogic(results) {
+    if (!isAuthorized) return;
+    
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+        lastFaceDetectedTime = Date.now();
+        const l = results.multiFaceLandmarks[0];
+
+        // Head Movement Analysis
+        let headGesture = detectHeadNod(l);
+        if (headGesture === "NODDING") {
+            let actText = `User head movement interpreted as: POSITIVE NOD.`;
+            if(personalityMode === "GENZ") actText = `Bro is literally nodding rn. Got it.`;
+            document.getElementById('behavior-text').innerText = actText;
+
+            if (isAwaitingModeSwitch) {
+                isAwaitingModeSwitch = false; clearTimeout(modeSwitchTimeout);
+                switchMode("GENZ");
+                speakAI("Say less bestie! Gen-Z mode activated. We are officially locked in, no cap.", true);
+            }
+        }
+
+        // --- DISTANCE-PROOF STRICT EMOTION MATH WITH SMOOTHING ---
+        const dist = (a, b) => Math.hypot(l[a].x - l[b].x, l[a].y - l[b].y);
+        const faceWidth = dist(234, 454);
+
+        // EAR (Eye Aspect Ratio) for Sleep.
+        const leftEAR = dist(159, 145) / dist(33, 133);
+        const rightEAR = dist(386, 374) / dist(362, 263);
+        let rawEAR = (leftEAR + rightEAR) / 2.0;
+
+        // MAR (Mouth Aspect Ratio) for Surprise.
+        let rawMAR = dist(13, 14) / dist(61, 291); 
+        
+        // Smile Curve. Positive = smile. Negative = frown.
+        const avgCornerY = (l[61].y + l[291].y) / 2.0;
+        const centerLipY = (l[13].y + l[14].y) / 2.0;
+        let rawCurve = (centerLipY - avgCornerY) / faceWidth; 
+        
+        // Brow Furrow (Anger). We use distance between inner brows normalized by face width.
+        // Smaller value means eyebrows are squeezed together (Angry/Confused).
+        let rawBrow = dist(107, 336) / faceWidth; 
+
+        // Apply Rolling Averages
+        earHistory.push(rawEAR); if(earHistory.length > historySize) earHistory.shift();
+        marHistory.push(rawMAR); if(marHistory.length > historySize) marHistory.shift();
+        smileHistory.push(rawCurve); if(smileHistory.length > historySize) smileHistory.shift();
+        browHistory.push(rawBrow); if(browHistory.length > historySize) browHistory.shift();
+
+        const EAR = getAvg(earHistory);
+        const MAR = getAvg(marHistory);
+        const mouthCurve = getAvg(smileHistory);
+        const browDist = getAvg(browHistory);
+
+        // Update HUD
+        document.getElementById('stat-brow').innerText = browDist.toFixed(3);
+        document.getElementById('stat-curve').innerText = mouthCurve.toFixed(3);
+        document.getElementById('stat-ear').innerText = EAR.toFixed(3);
+        document.getElementById('stat-mar').innerText = MAR.toFixed(3);
+
+        // --- NEW REFINED THRESHOLDS ---
+        let isAsleep = EAR < 0.20;
+        let isSurprised = MAR > 0.28;
+        // Angry: Brows squeezed together tightly. Normal is ~0.15+. Angry is usually < 0.12.
+        let isAngry = browDist < 0.125 && !isAsleep && !isSurprised;
+        // Smile: Curve must be distinctly positive. Normal resting can be slightly negative.
+        let isHappy = mouthCurve > 0.045 && !isAsleep; 
+        // Sad: Pronounced frown (corners pulled down significantly past center lip).
+        let isSad = mouthCurve < -0.06 && !isAsleep && !isSurprised && !isAngry;  
+
+        // Counters for debounce (Require ~15 frames hold to register to prevent flicker)
+        if (isAsleep) emotionCounters.fatigue++; else emotionCounters.fatigue = 0;
+        if (isAngry) emotionCounters.angry++; else emotionCounters.angry = 0;
+        if (isHappy) emotionCounters.happy++; else emotionCounters.happy = 0;
+        if (isSad) emotionCounters.sad++; else emotionCounters.sad = 0;
+        if (isSurprised) emotionCounters.surprised++; else emotionCounters.surprised = 0;
+
+        const emotionUI = document.getElementById('emotion-state');
+
+        // Apply State (Higher threshold for stability)
+        if (emotionCounters.fatigue > 15 && emotionState !== "ASLEEP") { 
+            emotionState = "ASLEEP"; baseUniforms.uStateMode.value = 3.0; // Red
+            emotionUI.innerText = "ASLEEP / FATIGUE"; emotionUI.className = "data-value font-bold text-red-500";
+            document.getElementById('prof-fatigue').innerText = "CRITICAL"; document.getElementById('prof-fatigue').className = "text-right text-red-500 font-bold";
+            speakAI(Dialogue[personalityMode].fatigue, true);
+            playAlarm(); 
+        } 
+        else if (emotionCounters.angry > 15 && emotionState !== "ANGRY") {
+            emotionState = "ANGRY"; baseUniforms.uStateMode.value = 4.0; // Orange
+            emotionUI.innerText = "STRESS / ANGRY"; emotionUI.className = "data-value font-bold text-orange-500";
+            document.getElementById('prof-hostile').innerText = "ELEVATED"; document.getElementById('prof-hostile').className = "text-right text-orange-500 font-bold";
+            speakAI(Dialogue[personalityMode].angry);
+        } 
+        else if (emotionCounters.happy > 15 && emotionState !== "HAPPY") {
+            emotionState = "HAPPY"; baseUniforms.uStateMode.value = 1.0; // Pink
+            emotionUI.innerText = "HAPPY / POSITIVE"; emotionUI.className = "data-value font-bold text-pink-400";
+            speakAI(Dialogue[personalityMode].happy);
+            
+            // Companion Prompt Logic
+            if (personalityMode === "NORMAL" && !hasPromptedCompanion && !isAwaitingModeSwitch) {
+                setTimeout(() => {
+                    speakAI(Dialogue.NORMAL.promptCompanion, true);
+                    hasPromptedCompanion = true;
+                    isAwaitingModeSwitch = true;
+                    modeSwitchTimeout = setTimeout(()=>{ isAwaitingModeSwitch = false; }, 10000);
+                }, 3000);
+            }
+        } 
+        else if (emotionCounters.sad > 15 && emotionState !== "SAD") {
+            emotionState = "SAD"; baseUniforms.uStateMode.value = 2.0; // Blue
+            emotionUI.innerText = "SAD / NEGATIVE"; emotionUI.className = "data-value font-bold text-blue-400";
+            speakAI(Dialogue[personalityMode].sad);
+            playHappyMusic();
+        } 
+        else if (emotionCounters.surprised > 15 && emotionState !== "SURPRISED") {
+            emotionState = "SURPRISED"; baseUniforms.uStateMode.value = 0.0;
+            emotionUI.innerText = "SURPRISED"; emotionUI.className = "data-value font-bold text-yellow-400";
+            speakAI(Dialogue[personalityMode].surprised);
+        } 
+        else if (emotionCounters.fatigue==0 && emotionCounters.angry==0 && emotionCounters.happy==0 && emotionCounters.sad==0 && emotionCounters.surprised==0) {
+            if(emotionState !== "NEUTRAL") {
+                emotionState = "NEUTRAL"; baseUniforms.uStateMode.value = 0.0; 
+                emotionUI.innerText = personalityMode === "GENZ" ? "CHILLING" : "NEUTRAL"; 
+                emotionUI.className = "data-value font-bold text-cyan-400";
+                
+                // Reset profiles
+                document.getElementById('prof-fatigue').innerText = "RESTED"; document.getElementById('prof-fatigue').className = "text-right text-cyan-400";
+                document.getElementById('prof-hostile').innerText = "N/A"; document.getElementById('prof-hostile').className = "text-right text-cyan-400";
+            }
+        }
+    }
+}
+
+async function initAI_Tracking() {
+    canvasCtx = canvasElement.getContext('2d');
+    
+    const faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6});
+    faceMesh.onResults((results) => {
+        latestFaceResults = results;
+        processFaceLogic(results);
+    });
+
+    const hands = new Hands({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+    hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6});
+    hands.onResults((results) => {
+        latestHandResults = results;
+        processHandLogic(results);
+    });
+
+    try {
+        const cameraUtils = new Camera(videoElement, { 
+            onFrame: async () => { 
+                if (isAuthorized) {
+                    try {
+                        await faceMesh.send({image: videoElement}); 
+                        await hands.send({image: videoElement}); 
+                    } catch(e) { console.error("Tracking Error:", e); }
+                }
+            }, 
+            width: 640, height: 480 
+        });
+        await cameraUtils.start();
+        
+        requestAnimationFrame(renderTrackingCanvas);
+
+    } catch (err) {
+        logTerminal('sys', "CAMERA ACCESS DENIED. OPTICAL VECTORS OFFLINE.");
+    }
+}
+
+
+// Vitals Loop synced with Emotion & User Presence
+setInterval(() => {
+    if(!isAuthorized) return;
+    
+    const emotionUI = document.getElementById('emotion-state');
+    
+    // Soft Absence Warning
+    if(Date.now() - lastFaceDetectedTime > 3000) {
+        if(emotionState !== "ABSENT") {
+            emotionState = "ABSENT";
+            emotionUI.innerText = "USER ABSENT";
+            emotionUI.className = "data-value font-bold text-gray-500";
+        }
+    }
+    
+    let targetBpm = 72; let targetStress = 15;
+    if (emotionState === "ASLEEP") { targetBpm = 50; targetStress = 5; }
+    else if (emotionState === "ANGRY") { targetBpm = 110; targetStress = 85; }
+    else if (emotionState === "SURPRISED") { targetBpm = 95; targetStress = 50; }
+    else if (emotionState === "SAD") { targetBpm = 65; targetStress = 45; }
+    else if (emotionState === "HAPPY") { targetBpm = 75; targetStress = 10; }
+    else if (emotionState === "ABSENT") { targetBpm = 60; targetStress = 0; }
+
+    vitalBpm += (targetBpm - vitalBpm) * 0.05 + (Math.random() * 2 - 1);
+    vitalStress += (targetStress - vitalStress) * 0.05 + (Math.random() * 2 - 1);
+    
+    vitalBpm = Math.max(50, Math.min(120, vitalBpm));
+    vitalStress = Math.max(0, Math.min(95, vitalStress));
+    
+    document.getElementById('vital-bpm').innerText = Math.round(vitalBpm) + " BPM";
+    document.getElementById('vital-stress-val').innerText = Math.round(vitalStress) + "%"; 
+    document.getElementById('vital-stress-bar').style.width = Math.round(vitalStress) + "%";
+    
+    let color = vitalStress > 60 ? '#ef4444' : (vitalStress > 40 ? '#eab308' : '#22c55e');
+    document.getElementById('vital-stress-val').style.color = color; 
+    document.getElementById('vital-stress-bar').style.backgroundColor = color;
+    document.getElementById('vital-resp').innerText = Math.round(14 + (vitalBpm - 70) * 0.15) + " RPM";
+}, 1000);
+
+// ==========================================
+// 7. RENDER LOOP & UNRESTRICTED MOUSE ROTATION
+// ==========================================
+function setupEventListeners() {
+    // Universal pointer events so it captures globally over the document
+    document.addEventListener('pointerdown', (e) => { 
+        if (!isAuthorized) return;
+        if (e.target.closest('.panel') || e.target.closest('button')) return;
+        
+        isDragging = true; 
+        isAutoRotating = false;
+        clearTimeout(autoRotateTimeout);
+        previousMousePosition = { x: e.clientX, y: e.clientY }; 
+        document.getElementById('action-state').innerText = "MANUAL OVERRIDE";
+    });
+    
+    document.addEventListener('pointerup', () => { 
+        if(isDragging) {
+            isDragging = false; 
+            document.getElementById('action-state').innerText = "SCANNING";
+            // Resume auto rotation after 3 seconds
+            autoRotateTimeout = setTimeout(() => {
+                isAutoRotating = true;
+                autoRotationAngle = targetRotationY; 
+            }, 3000);
+        }
+    });
+
+    document.addEventListener('pointermove', (e) => {
+        if (!isDragging || !isAuthorized) return;
+        let deltaX = e.clientX - previousMousePosition.x;
+        let deltaY = e.clientY - previousMousePosition.y;
+        targetRotationY += deltaX * 0.005;
+        targetRotationX += deltaY * 0.005;
+        // Clamp vertical
+        targetRotationX = Math.max(-Math.PI/4, Math.min(Math.PI/4, targetRotationX));
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+    
+    document.addEventListener('wheel', (e) => { 
+        if (isAuthorized) {
+            targetZoom = Math.max(5, Math.min(targetZoom + e.deltaY * 0.01, 25)); 
+        }
+    });
+    
+    // Add touch support for zooming on mobile
+    let initialPinchDistance = null;
+    document.addEventListener('touchstart', (e) => {
+        if(e.touches.length === 2 && isAuthorized) {
+            initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        }
+    }, {passive: true});
+    
+    document.addEventListener('touchmove', (e) => {
+        if(e.touches.length === 2 && initialPinchDistance !== null && isAuthorized) {
+            const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            const delta = initialPinchDistance - currentDistance;
+            targetZoom = Math.max(5, Math.min(targetZoom + delta * 0.05, 25));
+            initialPinchDistance = currentDistance;
+        }
+    }, {passive: true});
+    
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+        
+        // Adjust zoom for mobile screens on resize
+        if(!isDragging) {
+            targetZoom = window.innerWidth < 768 ? 20 : 15;
+        }
+    });
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    const elapsedTime = clock.getElapsedTime();
+    if(baseUniforms) baseUniforms.uTime.value = elapsedTime;
+
+    // Auto-Rotate Logic
+    if (isAutoRotating) {
+        autoRotationAngle += 0.003; 
+        targetRotationY = autoRotationAngle;
+        targetRotationX += (0 - targetRotationX) * 0.02; // slowly level out vertically
+    }
+
+    currentRotationX += (targetRotationX - currentRotationX) * 0.05;
+    currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+    currentZoom += (targetZoom - currentZoom) * 0.05;
+
+    if (particleSystem && skullMesh) {
+        particleSystem.rotation.set(currentRotationX, currentRotationY, 0);
+        skullMesh.rotation.set(currentRotationX, currentRotationY + Math.sin(elapsedTime) * 0.05, 0);
+    }
+    camera.position.z = currentZoom;
+    if (basePlatform) basePlatform.rotation.y += 0.005;
+    composer.render();
+}
+window.onload = initThreeJS;
+</script>
+</body>
+</html>
