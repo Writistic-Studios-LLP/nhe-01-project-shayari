@@ -263,6 +263,7 @@ Ethical Guard    : Escalation Monitoring Active
 📱 [Social Media Governance](SOCIAL-MEDIA-GOVERNANCE.md)
 📖 [Shayari's Observations](diary/)
 ❓ [FAQ](FAQ.md)
+🥀 [Lore of NHE 01](BACKSTORY.md)
 🔄 [Changelog](CHANGELOG.md)
 🪪 [Ethical License](ETHICAL_LICENSE.md)
 📄 [Copyright](COPYRIGHT.md)
