@@ -12,6 +12,10 @@ Document Type: GitHub Markdown Reference File
 
 Version: Alpha  
 
+<p align="center">
+  <img src="assets/DigitalIdentity.png" width="850"/>
+</p>
+
 Status: Live
 ---
 1. Overview:
